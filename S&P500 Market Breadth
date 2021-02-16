@@ -1,0 +1,167 @@
+//@version=4
+//Idea From LEI & LoneCapital
+//Thanks to Ronnyjoy,Don-L,jasonmel,mli,papok,s6wu,xian,Yu yang,Jchang274,Yin Feng from Slack Group
+//文件头  双反斜杠用于说明区域功能  四反斜杠用于说明下一行功能
+study(title="S&P500 Market Breadth", shorttitle="S&P500 Market Breadth",overlay=false)
+//增益调节，由于TV限制，只能从这改了，tp范围是1~9，1是最强，9是最弱
+tp=9
+colorY = input(color.yellow,'使用说明',input.color)
+//表头，说明
+GLlabel=label.new(
+     x=bar_index[10],y=13*10+5, text="使用说明",
+     style=label.style_label_center,color=colorY,
+     textcolor=color.black,
+     textalign = text.align_left,size=size.small)
+label.delete(GLlabel[1]) 
+label.set_tooltip(GLlabel, "11个子行业，最高分1100，最低分0\n\n高于80%或低于20%，改变颜色和字号") 
+//绘制水平分隔线，用于填充颜色和分隔区域
+h0  = hline(  0, title="Center", linestyle=hline.style_dashed, color=color.gray)
+h1  = hline( 10, title="Center", linestyle=hline.style_dashed, color=color.gray)
+h2  = hline( 20, title="Center", linestyle=hline.style_dashed, color=color.gray)
+h3  = hline( 30, title="Center", linestyle=hline.style_dashed, color=color.gray)
+h4  = hline( 40, title="Center", linestyle=hline.style_dashed, color=color.gray)
+h5  = hline( 50, title="Center", linestyle=hline.style_dashed, color=color.gray)
+h6  = hline( 60, title="Center", linestyle=hline.style_dashed, color=color.gray)
+h7  = hline( 70, title="Center", linestyle=hline.style_dashed, color=color.gray)
+h8  = hline( 80, title="Center", linestyle=hline.style_dashed, color=color.gray)
+h9  = hline( 90, title="Center", linestyle=hline.style_dashed, color=color.gray)
+h10 = hline(100, title="Center", linestyle=hline.style_dashed, color=color.gray)
+h11 = hline(110, title="Center", linestyle=hline.style_dashed, color=color.gray)
+////间隔行，把总分和分项分开
+h12 = hline(115, title="Center", linestyle=hline.style_dashed, color=color.gray)
+h13 = hline(120, title="Center", linestyle=hline.style_dashed, color=color.new(color.white,100))
+////保证顶部留空白，用于写说明
+h14 = hline(130, title="Center", linestyle=hline.style_dashed, color=color.new(color.white,100))
+
+//获取 Above 20 Day 指数日线周期的收盘价
+SPY = security("INDEX:S5TW", timeframe.period,close)
+COM = security("INDEX:SLTW", timeframe.period,close)
+CND = security("INDEX:SYTW", timeframe.period,close)
+CNS = security("INDEX:SPTW", timeframe.period,close)
+ENE = security("INDEX:SETW", timeframe.period,close)
+FIN = security("INDEX:SFTW", timeframe.period,close)
+HLT = security("INDEX:SVTW", timeframe.period,close)
+IND = security("INDEX:SITW", timeframe.period,close)
+MAT = security("INDEX:SBTW", timeframe.period,close)
+REI = security("INDEX:SSTW", timeframe.period,close)
+TEC = security("INDEX:SKTW", timeframe.period,close)
+UTL = security("INDEX:SUTW", timeframe.period,close)
+////计算总分数，11个行业，最高分就是1100
+TTL=COM+CND+CNS+ENE+FIN+HLT+IND+MAT+REI+TEC+UTL
+////除以11个行业，换成百分比
+TTLAV = TTL/11
+
+//填充颜色
+////未完成，调整颜色变化的浓度范围1到9,增益调节，TV限制color.new的透明度必须是常量
+//////tpinput = input(defval=9,title="增益调节",type=input.integer,minval=1,maxval=9,step=1)
+
+////定义填充颜色函数，不需要画plot线，影响使用体验，会显示很多小圈，用hline不会。
+colorFill(v)=> 
+     v >=  0 and v< 5 ? color.new(color.red,   0*tp) : v >=  5 and v<10   ? color.new(color.red,   1*tp) :
+     v >= 10 and v<15 ? color.new(color.red,   2*tp) : v >= 15 and v<20   ? color.new(color.red,   3*tp) :
+     v >= 20 and v<25 ? color.new(color.red,   4*tp) : v >= 25 and v<30   ? color.new(color.red,   5*tp) :
+     v >= 30 and v<35 ? color.new(color.red,   6*tp) : v >= 35 and v<40   ? color.new(color.red,   7*tp) :
+     v >= 40 and v<45 ? color.new(color.red,   8*tp) : v >= 45 and v<50   ? color.new(color.red,   9*tp) :
+     v >= 50 and v<55 ? color.new(color.green, 9*tp) : v >= 55 and v<60   ? color.new(color.green, 8*tp) :
+     v >= 60 and v<65 ? color.new(color.green, 7*tp) : v >= 65 and v<70   ? color.new(color.green, 6*tp) :
+     v >= 70 and v<75 ? color.new(color.green, 5*tp) : v >= 75 and v<80   ? color.new(color.green, 5*tp) :
+     v >= 80 and v<85 ? color.new(color.green, 3*tp) : v >= 85 and v<90   ? color.new(color.green, 2*tp) :
+     v >= 90 and v<95 ? color.new(color.green, 1*tp) : v >= 95 and v<=100 ? color.new(color.green, 0*tp) : na
+
+fill( h12,h13, color=colorFill(TTLAV), transp=10 )
+fill( h10,h11, color=colorFill(COM),   transp=10 )
+fill( h9 ,h10, color=colorFill(CND),   transp=10 )
+fill( h8 ,h9,  color=colorFill(CNS),   transp=10 )
+fill( h7 ,h8,  color=colorFill(ENE),   transp=10 )
+fill( h6 ,h7,  color=colorFill(FIN),   transp=10 )
+fill( h5 ,h6,  color=colorFill(HLT),   transp=10 )
+fill( h4 ,h5,  color=colorFill(IND),   transp=10 )
+fill( h3 ,h4,  color=colorFill(MAT),   transp=10 )
+fill( h2 ,h3,  color=colorFill(REI),   transp=10 )
+fill( h1 ,h2,  color=colorFill(TEC),   transp=10 )
+fill( h0 ,h1,  color=colorFill(UTL),   transp=10 )
+
+//绘制右侧分数标签
+GLlabel13=label.new(
+     x=bar_index,y=12.5*10-5, text="Total Score "+tostring(TTL,"#"),
+     style=label.style_label_left,color=color.new(color.white,transp=100),
+     textcolor=TTLAV>80?color.lime:TTLAV<20?color.red:color.black,
+     textalign = text.align_left,size=TTLAV>80 or TTLAV<20?size.large:size.normal)
+label.delete(GLlabel13[1]) 
+////12行留空白
+GLlabel11=label.new(
+     x=bar_index,y=11*10-5, text=" COM "+tostring(COM,"#"),
+     style=label.style_label_left,color=color.new(color.white,transp=100),
+     textcolor=COM>80?color.lime:COM<20?color.red:color.black,
+     textalign = text.align_center,size=size.normal)
+label.delete(GLlabel11[1]) 
+
+GLlabel10=label.new(
+     x=bar_index,y=10*10-5,     text=" CND "+tostring(CND,"#"),
+     style=label.style_label_left,color=color.new(color.white,transp=100),
+     textcolor=CND>80?color.lime:CND<20?color.red:color.black,
+     textalign = text.align_center,size=size.normal)
+label.delete(GLlabel10[1])
+
+GLlabel9=label.new(
+     x=bar_index,y=9*10-5,text=" CNS "+tostring(CNS,"#"),
+     style=label.style_label_left,color=color.new(color.white,transp=100),
+     textcolor=CNS>80?color.lime:CNS<20?color.red:color.black,
+     textalign = text.align_center,size=size.normal)
+label.delete(GLlabel9[1])
+
+GLlabel8=label.new(
+     x=bar_index,y=8*10-5,text=" ENE "+tostring(ENE,"#"),
+     style=label.style_label_left,color=color.new(color.white,transp=100),
+     textcolor=ENE>80?color.lime:ENE<20?color.red:color.black,
+     textalign = text.align_center,size=size.normal)
+label.delete(GLlabel8[1])
+
+GLlabel7=label.new(
+     x=bar_index,y=7*10-5,text=" FIN "+tostring(FIN,"#"),
+     style=label.style_label_left,color=color.new(color.white,transp=100),
+     textcolor=FIN>80?color.lime:FIN<20?color.red:color.black,
+     textalign = text.align_center,size=size.normal)
+label.delete(GLlabel7[1])
+
+GLlabel6=label.new(
+     x=bar_index,y=6*10-5,text=" HLT "+tostring(HLT,"#"),
+     style=label.style_label_left,color=color.new(color.white,transp=100),
+     textcolor=HLT>80?color.lime:HLT<20?color.red:color.black,
+     textalign = text.align_center,size=size.normal)
+label.delete(GLlabel6[1])
+
+GLlabel5=label.new(
+     x=bar_index,y=5*10-5,text=" IND "+tostring(IND,"#"),
+     style=label.style_label_left,color=color.new(color.white,transp=100),
+     textcolor=IND>80?color.lime:IND<20?color.red:color.black,
+     textalign = text.align_center,size=size.normal)
+label.delete(GLlabel5[1])
+
+GLlabel4=label.new(
+     x=bar_index,y=4*10-5,text=" MAT "+tostring(MAT,"#"),
+     style=label.style_label_left,color=color.new(color.white,transp=100),
+     textcolor=MAT>80?color.lime:MAT<20?color.red:color.black,
+     textalign = text.align_center,size=size.normal)
+label.delete(GLlabel4[1])
+
+GLlabel3=label.new(
+     x=bar_index,y=3*10-5,text=" REI "+tostring(REI,"#"),
+     style=label.style_label_left,color=color.new(color.white,transp=100),
+     textcolor=REI>80?color.lime:REI<20?color.red:color.black,
+     textalign = text.align_center,size=size.normal)
+label.delete(GLlabel3[1])
+
+GLlabel2=label.new(
+     x=bar_index,y=2*10-5,text=" TEC "+tostring(TEC,"#"),
+     style=label.style_label_left,color=color.new(color.white,transp=100),
+     textcolor=TEC>80?color.lime:TEC<20?color.red:color.black,
+     textalign = text.align_center,size=size.normal)
+label.delete(GLlabel2[1])
+
+GLlabel1=label.new(
+     x=bar_index,y=1*10-5,text=" UTL "+tostring(UTL,"#"),
+     style=label.style_label_left,color=color.new(color.white,transp=100),
+     textcolor=UTL>80?color.lime:UTL<20?color.red:color.black,
+     textalign = text.align_center,size=size.normal)
+label.delete(GLlabel1[1])
